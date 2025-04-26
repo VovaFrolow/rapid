@@ -21,6 +21,7 @@ MOVI_DEFAULT_STD = [0.5, 0.5, 0.5]
 DATASET_TYPES = {
     "coco": "image",
     "voc": "image",
+    "clevrtex": "image",
     "davis": "video",
     "ytvis": "video",
     "movi": "video",
@@ -149,6 +150,13 @@ def build(config):
         if split == "val":
             transforms["segmentations"] = tvt.Compose(
                 [VOCToBinary(num_classes=config.num_classes), resize_segmentation]
+            )
+    elif dataset == "clevrtex":
+        if "target_size" in config:
+            raise NotImplementedError("Separate targets not implemented for transform `voc`")
+        if split == "val":
+            transforms["segmentations"] = tvt.Compose(
+                [ClevrTexToBinary(num_classes=config.num_classes), resize_segmentation]
             )
     elif dataset == "ytvis":
         if "target_size" in config:
@@ -527,6 +535,20 @@ class COCOToBinary:
 
 class VOCToBinary:
     """Transform VOC masks to stardart binary form with shape (I, H, W)."""
+
+    def __init__(self, num_classes: int):
+        self.num_classes = num_classes
+
+    def __call__(self, mask: torch.Tensor):
+        h, w = mask.shape
+        mask_binary = torch.zeros(self.num_classes, h, w, dtype=torch.bool)
+        for class_id in range(self.num_classes):
+            mask_binary[class_id] = torch.from_numpy(mask == class_id).to(torch.bool)
+
+        return mask_binary
+
+class ClevrTexToBinary:
+    """Transform ClevrTex masks to stardart binary form with shape (I, H, W)."""
 
     def __init__(self, num_classes: int):
         self.num_classes = num_classes

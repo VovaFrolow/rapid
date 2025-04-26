@@ -4,16 +4,16 @@ experiment_name: coco_base14_dinosmm
 
 globals:
   INPUT_TYPE: image
-  MODE: classic_smm
-  NUM_SLOTS: 6 # 7 [6]
+  MODE: default
+  NUM_SLOTS: 11 # 7 [6]
   SLOT_DIM: 256 # 256
-  VIT_MODEL: vit_base_patch14_dinov2
+  VIT_MODEL: vit_base_patch14_dinov2 # vit_base_patch16_224_dino, vit_base_patch8_224_dino
   FEAT_DIM: "${config_prop: VIT_PARAMS, ${.VIT_MODEL}, FEAT_DIM}"
   NUM_PATCHES: "${config_prop: VIT_PARAMS, ${.VIT_MODEL}, NUM_PATCHES}"
   NUM_GPUS: 1
   BATCH_SIZE_PER_GPU: 64
   TOTAL_BATCH_SIZE: "${mul: ${.NUM_GPUS}, ${.BATCH_SIZE_PER_GPU}}"
-  BASE_LR: 0.0004 # [0.0004]
+  BASE_LR: 0.0002 # [0.0004]
   STEP: null
   TEMPERATURE: 1.0 # [3.0]
   USED_MULTIPLES: []
@@ -29,6 +29,13 @@ optimizer:
   # Scale learning rate by batch size: 1e-4 for every 32 samples
   lr: "${eval: 'a / 32 * b', ${globals.TOTAL_BATCH_SIZE}, ${globals.BASE_LR}}" # "${eval: 'a / 32 * b', ${globals.TOTAL_BATCH_SIZE}, ${globals.BASE_LR}}"
   lr_scheduler:
+    # name: exp_decay_with_warmup
+    # warmup_steps: 10000
+    # decay_steps: 100000
+    # name: cosine_decay_with_warmup
+    # warmup_steps: 5000
+    # decay_steps: 45000
+    # min_scale: 0.0025
     name: cosine_decay_with_exponential_tail
     warmup_steps: 5000
     decay_steps: 50000
@@ -45,7 +52,7 @@ model:
   masks_to_visualize: ['decoder', 'grouping']
   
   initializer:
-    name: SMMInit
+    name: RandomInit
     n_slots: ${globals.NUM_SLOTS}
     dim: ${globals.SLOT_DIM}
 
@@ -66,10 +73,10 @@ model:
       layer_norm: true
 
   grouper:
-    name: SlotMixture
-    dim: ${globals.SLOT_DIM}
-    num_slots: ${globals.NUM_SLOTS}
-    iters: 3
+    name: SlotAttention
+    inp_dim: ${globals.SLOT_DIM}
+    slot_dim: ${globals.SLOT_DIM}
+    n_iters: 3
     use_mlp: true
 
 
@@ -159,10 +166,10 @@ val_metrics:
     true_key: segmentations
 
 dataset:
-  train_shards: "voc/voc-trainaug-{000000..000082}.tar"
-  val_shards: "voc/voc-trainval-{000000..000022}.tar"
+  train_shards: "clevrtex/clevrtex-train-{000000..000312}.tar"
+  val_shards: "clevrtex/clevrtex-val-{000000..000078}.tar"
   batch_size: ${globals.BATCH_SIZE_PER_GPU}
-  val_size: 2913
+  val_size: 10000
   num_workers: 4
   num_val_workers: 1
   train_pipeline:
@@ -171,18 +178,18 @@ dataset:
     is_video_dataset: false
     shuffle_size: 2048
     transforms:
-      name: voc_train
-      crop_type: short_side_resize_random
+      name: clevrtex_train
+      # crop_type: short_side_resize_random
       type: ${globals.INPUT_TYPE}
       input_size: 224
-      h_flip_prob: 0.5
+      # h_flip_prob: 0.5
   val_pipeline:
     name: ${globals.INPUT_TYPE}
     keys: [image, segmentations]
     is_video_dataset: false
     transforms:
-      name: voc_val
-      crop_type: central
+      name: clevrtex_val
+      # crop_type: central
       type: ${globals.INPUT_TYPE}
       input_size: 224
-      num_classes: 21
+      num_classes: 11

@@ -5,7 +5,7 @@ experiment_name: coco_base14_dinosmm
 globals:
   INPUT_TYPE: image
   MODE: classic_smm
-  NUM_SLOTS: 6 # 7 [6]
+  NUM_SLOTS: 11 # 7 [6]
   SLOT_DIM: 256 # 256
   VIT_MODEL: vit_base_patch14_dinov2
   FEAT_DIM: "${config_prop: VIT_PARAMS, ${.VIT_MODEL}, FEAT_DIM}"
@@ -29,6 +29,13 @@ optimizer:
   # Scale learning rate by batch size: 1e-4 for every 32 samples
   lr: "${eval: 'a / 32 * b', ${globals.TOTAL_BATCH_SIZE}, ${globals.BASE_LR}}" # "${eval: 'a / 32 * b', ${globals.TOTAL_BATCH_SIZE}, ${globals.BASE_LR}}"
   lr_scheduler:
+    # name: exp_decay_with_warmup
+    # warmup_steps: 10000
+    # decay_steps: 100000
+    # name: cosine_decay_with_warmup
+    # warmup_steps: 5000
+    # decay_steps: 45000
+    # min_scale: 0.0025
     name: cosine_decay_with_exponential_tail
     warmup_steps: 5000
     decay_steps: 50000
@@ -48,6 +55,7 @@ model:
     name: SMMInit
     n_slots: ${globals.NUM_SLOTS}
     dim: ${globals.SLOT_DIM}
+    # hidden_dim: "${mul: ${globals.SLOT_DIM}, 2}"
 
   encoder:
     backbone:
@@ -159,10 +167,10 @@ val_metrics:
     true_key: segmentations
 
 dataset:
-  train_shards: "voc/voc-trainaug-{000000..000082}.tar"
-  val_shards: "voc/voc-trainval-{000000..000022}.tar"
+  train_shards: "clevrtex/clevrtex-train-{000000..000312}.tar"
+  val_shards: "clevrtex/clevrtex-val-{000000..000078}.tar"
   batch_size: ${globals.BATCH_SIZE_PER_GPU}
-  val_size: 2913
+  val_size: 10000
   num_workers: 4
   num_val_workers: 1
   train_pipeline:
@@ -171,18 +179,18 @@ dataset:
     is_video_dataset: false
     shuffle_size: 2048
     transforms:
-      name: voc_train
-      crop_type: short_side_resize_random
+      name: clevrtex_train
+      # crop_type: short_side_resize_random
       type: ${globals.INPUT_TYPE}
       input_size: 224
-      h_flip_prob: 0.5
+      # h_flip_prob: 0.5
   val_pipeline:
     name: ${globals.INPUT_TYPE}
     keys: [image, segmentations]
     is_video_dataset: false
     transforms:
-      name: voc_val
-      crop_type: central
+      name: clevrtex_val
+      # crop_type: central
       type: ${globals.INPUT_TYPE}
       input_size: 224
-      num_classes: 21
+      num_classes: 11

@@ -4,8 +4,8 @@ experiment_name: coco_base14_dinosmm
 
 globals:
   INPUT_TYPE: image
-  MODE: classic_smm
-  NUM_SLOTS: 6 # 7 [6]
+  MODE: smm
+  NUM_SLOTS: 11 # 7 [6]
   SLOT_DIM: 256 # 256
   VIT_MODEL: vit_base_patch14_dinov2
   FEAT_DIM: "${config_prop: VIT_PARAMS, ${.VIT_MODEL}, FEAT_DIM}"
@@ -29,6 +29,13 @@ optimizer:
   # Scale learning rate by batch size: 1e-4 for every 32 samples
   lr: "${eval: 'a / 32 * b', ${globals.TOTAL_BATCH_SIZE}, ${globals.BASE_LR}}" # "${eval: 'a / 32 * b', ${globals.TOTAL_BATCH_SIZE}, ${globals.BASE_LR}}"
   lr_scheduler:
+    # name: exp_decay_with_warmup
+    # warmup_steps: 10000
+    # decay_steps: 100000
+    # name: cosine_decay_with_warmup
+    # warmup_steps: 5000
+    # decay_steps: 45000
+    # min_scale: 0.0025
     name: cosine_decay_with_exponential_tail
     warmup_steps: 5000
     decay_steps: 50000
@@ -36,6 +43,13 @@ optimizer:
     exp_decay_rate: 0.65
     transition_start_ratio: 0.9
     transition_length_ratio: 0.1
+    # name: cosine_annealing_with_warmup_and_restarts
+    # warmup_steps: 5000
+    # cycle_steps: 45000
+    # restarts_factor: 2.0
+    # decay_rate: 0.9
+    # bench: 5000
+    # min_scale: 0.25
 
 model:
   input_type: ${globals.INPUT_TYPE}
@@ -48,29 +62,55 @@ model:
     name: SMMInit
     n_slots: ${globals.NUM_SLOTS}
     dim: ${globals.SLOT_DIM}
+    # hidden_dim: "${mul: ${globals.SLOT_DIM}, 2}"
 
   encoder:
     backbone:
-      name: TimmExtractor
+      name: TimmExtractorv2
       model: ${globals.VIT_MODEL}
-      features: vit_block12
+      features:
+      - vit_block12
+      - vit_block11
+      - vit_block10
+      dim: ${globals.SLOT_DIM}
+      drop: true
+      mode: hc
+      proj_type: nonlinear
       frozen: true
       pretrained: true
+      last_blocks: 3
       model_kwargs:
         dynamic_img_size: True
-    output_transform:
-      name: networks.two_layer_mlp
-      inp_dim: ${globals.FEAT_DIM}
-      outp_dim: ${globals.SLOT_DIM}
-      hidden_dim: "${mul: ${globals.FEAT_DIM}, 2}"
-      layer_norm: true
+    # output_transform:
+    #   name: networks.two_layer_mlp
+    #   inp_dim: ${globals.FEAT_DIM}
+    #   outp_dim: ${globals.SLOT_DIM}
+    #   hidden_dim: "${mul: ${globals.FEAT_DIM}, 4}"
+    #   layer_norm: true
 
   grouper:
-    name: SlotMixture
+    name: StabilizedSMM
     dim: ${globals.SLOT_DIM}
+    # hidden_dim: "${mul: ${globals.SLOT_DIM}, 2}"
     num_slots: ${globals.NUM_SLOTS}
     iters: 3
-    use_mlp: true
+    # batch_size: ${globals.BATCH_SIZE_PER_GPU}
+    attn_smooth: null # ['gaussian', 'conv', 'wnconv']
+    attn_smooth_size: null
+    init_temperature: null
+    temperature: ${globals.TEMPERATURE}
+    final_temperature: null
+    gau_min: 0.1 # 0.1 [2.0]
+    gau_max: 2.0 # 2.0 [2.0]
+    drop_rate: null # null
+    step: ${globals.STEP}
+    decay_steps: null # 100000
+    used_multiples: ${globals.USED_MULTIPLES}
+  # grouper:
+  #   name: AdvancedBayesianSelfAttentionGMM
+  #   dim: ${globals.SLOT_DIM}
+  #   num_slots: ${globals.NUM_SLOTS}
+  #   batch_size: ${globals.TOTAL_BATCH_SIZE}
 
 
   decoder:
@@ -81,6 +121,43 @@ model:
     n_patches: ${globals.NUM_PATCHES}
     final_conv: null
     kernel_size: null
+  # decoder:
+  #   name: SlotMixerDecoder
+  #   inp_dim: ${globals.FEAT_DIM}
+  #   embed_dim: ${globals.FEAT_DIM}
+  #   outp_dim:  ${globals.FEAT_DIM}
+  #   n_patches: ${globals.NUM_PATCHES}
+  #   final_conv: null
+  #   kernel_size: null
+  #   proj_slots: 
+  #     name: linear
+  #     inp_dim: ${globals.SLOT_DIM}
+  #     outp_dim: ${globals.FEAT_DIM}
+  #   allocator:
+  #     name: TransformerDecoder
+  #     dim: ${globals.FEAT_DIM}
+  #     memory_dim: ${globals.FEAT_DIM}
+  #     n_blocks: 4 # 2
+  #     n_heads: 8
+  #   renderer: null
+      # name: MLP
+      # inp_dim: ${globals.FEAT_DIM}
+      # outp_dim: 3072
+      # hidden_dims: [3072, 3072, 3072]
+      # final_activation: true
+    # renderer_dim: 3072
+    # output_transform:
+    #   name: networks.two_layer_mlp
+    #   inp_dim: ${globals.FEAT_DIM}
+    #   outp_dim: ${globals.FEAT_DIM}
+    #   hidden_dim: "${mul: ${globals.FEAT_DIM}, 4}"
+    #   layer_norm: true
+    #   residual: true
+    #   final_activation: true
+    # train_chunk: 4
+    # val_chunk: 24
+    # use_layer_norms: true
+    # pos_embed_mode: add
 
 val_metrics:
   ari:
@@ -159,10 +236,10 @@ val_metrics:
     true_key: segmentations
 
 dataset:
-  train_shards: "voc/voc-trainaug-{000000..000082}.tar"
-  val_shards: "voc/voc-trainval-{000000..000022}.tar"
+  train_shards: "clevrtex/clevrtex-train-{000000..000312}.tar"
+  val_shards: "clevrtex/clevrtex-val-{000000..000078}.tar"
   batch_size: ${globals.BATCH_SIZE_PER_GPU}
-  val_size: 2913
+  val_size: 10000
   num_workers: 4
   num_val_workers: 1
   train_pipeline:
@@ -171,18 +248,18 @@ dataset:
     is_video_dataset: false
     shuffle_size: 2048
     transforms:
-      name: voc_train
-      crop_type: short_side_resize_random
+      name: clevrtex_train
+      # crop_type: short_side_resize_random
       type: ${globals.INPUT_TYPE}
       input_size: 224
-      h_flip_prob: 0.5
+      # h_flip_prob: 0.5
   val_pipeline:
     name: ${globals.INPUT_TYPE}
     keys: [image, segmentations]
     is_video_dataset: false
     transforms:
-      name: voc_val
-      crop_type: central
+      name: clevrtex_val
+      # crop_type: central
       type: ${globals.INPUT_TYPE}
       input_size: 224
-      num_classes: 21
+      num_classes: 11

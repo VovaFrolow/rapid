@@ -469,7 +469,7 @@ class ObjectCentricModel(pl.LightningModule):
         # print('save images')
         encoder_output = self.encoder(encoder_input)
         features = encoder_output["features"]
-        if self.mode == "smm" or self.mode == "tsmm" or self.mode == "clasic_smm": 
+        if self.mode == "smm" or self.mode == "tsmm" or self.mode == "classic_smm": 
             slots_initial = self.initializer(inputs=features)
             processor_output = self.processor(slots_initial, features) # arg№2 = inputs, self.current_step
             # if processor_output["corrector"].get("kl_loss") is not None:
