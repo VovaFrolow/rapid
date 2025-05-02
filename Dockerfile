@@ -13,5 +13,6 @@ RUN pip install -U 'tensorboard'
 RUN pip install opencv-python
 RUN pip install wandb
 RUN pip install pycocotools
+RUN pip install gdown
 RUN apt-get update
 RUN apt-get install ffmpeg libgl1 xvfb -y

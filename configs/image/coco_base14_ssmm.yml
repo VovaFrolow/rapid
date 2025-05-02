@@ -1,13 +1,13 @@
 experiment_group: rapid
-experiment_name: coco_base14_dinosmm
+experiment_name: coco_base14_dinov2smm
 # seed: 42
 
 globals:
   INPUT_TYPE: image
-  MODE: classic_smm
-  NUM_SLOTS: 11 # 7 [6]
+  MODE: default_ssmm
+  NUM_SLOTS: 7 # 7 [6]
   SLOT_DIM: 256 # 256
-  VIT_MODEL: vit_base_patch8_224_dino
+  VIT_MODEL: vit_base_patch14_dinov2
   FEAT_DIM: "${config_prop: VIT_PARAMS, ${.VIT_MODEL}, FEAT_DIM}"
   NUM_PATCHES: "${config_prop: VIT_PARAMS, ${.VIT_MODEL}, NUM_PATCHES}"
   NUM_GPUS: 1
@@ -23,40 +23,26 @@ trainer:
   log_every_n_steps: 200
   val_check_interval: 2500
   gradient_clip_val: 1.0
-  accumulate_grad_batches: 2
 
 optimizer:
   name: Adam
   # Scale learning rate by batch size: 1e-4 for every 32 samples
   lr: "${eval: 'a / 32 * b', ${globals.TOTAL_BATCH_SIZE}, ${globals.BASE_LR}}" # "${eval: 'a / 32 * b', ${globals.TOTAL_BATCH_SIZE}, ${globals.BASE_LR}}"
   lr_scheduler:
-    # name: exp_decay_with_warmup
-    # warmup_steps: 10000
-    # decay_steps: 100000
-    # name: cosine_decay_with_warmup
-    # warmup_steps: 5000
-    # decay_steps: 45000
-    # min_scale: 0.0025
-    name: cosine_decay_with_exponential_tail
-    warmup_steps: 5000
-    decay_steps: 50000
-    min_scale: 0.25
-    exp_decay_rate: 0.65
-    transition_start_ratio: 0.9
-    transition_length_ratio: 0.1
+    name: exp_decay_with_warmup
+    warmup_steps: 10000
+    decay_steps: 100000
 
 model:
   input_type: ${globals.INPUT_TYPE}
   mode: ${globals.MODE}
   visualize: true
   visualize_every_n_steps: 2500
-  masks_to_visualize: ['decoder', 'grouping']
   
   initializer:
-    name: SMMInit
+    name: RandomInit
     n_slots: ${globals.NUM_SLOTS}
-    dim: ${globals.SLOT_DIM}
-    # hidden_dim: "${mul: ${globals.SLOT_DIM}, 2}"
+    dim: "${mul: ${globals.SLOT_DIM}, 2}"
 
   encoder:
     backbone:
@@ -75,11 +61,21 @@ model:
       layer_norm: true
 
   grouper:
-    name: SlotMixture
+    name: StabilizedSMM
     dim: ${globals.SLOT_DIM}
     num_slots: ${globals.NUM_SLOTS}
     iters: 3
-    use_mlp: true
+    attn_smooth: null # ['gaussian', 'conv', 'wnconv']
+    attn_smooth_size: null
+    init_temperature: null
+    temperature: ${globals.TEMPERATURE}
+    final_temperature: null
+    gau_min: null # 0.1 [2.0]
+    gau_max: null # 2.0 [2.0]
+    drop_rate: null # null
+    step: ${globals.STEP}
+    decay_steps: null # 100000
+    used_multiples: ${globals.USED_MULTIPLES}
 
 
   decoder:
@@ -109,23 +105,9 @@ val_metrics:
     matching: overlap
     pred_key: decoder_masks_hard
     true_key: segmentations
-  fg_mbo:
-    name: ImageIoU
-    ignore_overlaps: true
-    ignore_background: true
-    matching: overlap
-    pred_key: decoder_masks_hard
-    true_key: segmentations
   miou:
     name: ImageIoU
     ignore_overlaps: true
-    matching: hungarian
-    pred_key: decoder_masks_hard
-    true_key: segmentations
-  fg_miou:
-    name: ImageIoU
-    ignore_overlaps: true
-    ignore_background: true
     matching: hungarian
     pred_key: decoder_masks_hard
     true_key: segmentations
@@ -146,32 +128,18 @@ val_metrics:
     matching: overlap
     pred_key: grouping_masks_hard
     true_key: segmentations
-  slots_fg_mbo:
-    name: ImageIoU
-    ignore_overlaps: true
-    ignore_background: true
-    matching: overlap
-    pred_key: grouping_masks_hard
-    true_key: segmentations
   slots_miou:
     name: ImageIoU
     ignore_overlaps: true
     matching: hungarian
     pred_key: grouping_masks_hard
     true_key: segmentations
-  slots_fg_miou:
-    name: ImageIoU
-    ignore_overlaps: true
-    ignore_background: true
-    matching: hungarian
-    pred_key: grouping_masks_hard
-    true_key: segmentations
 
 dataset:
-  train_shards: "clevrtex/clevrtex-train-{000000..000312}.tar"
-  val_shards: "clevrtex/clevrtex-val-{000000..000078}.tar"
+  train_shards: "coco/coco-train-{000000..000924}.tar"
+  val_shards: "coco/coco-validation-{000000..000039}.tar"
   batch_size: ${globals.BATCH_SIZE_PER_GPU}
-  val_size: 10000
+  val_size: 5000
   num_workers: 4
   num_val_workers: 1
   train_pipeline:
@@ -180,18 +148,18 @@ dataset:
     is_video_dataset: false
     shuffle_size: 2048
     transforms:
-      name: clevrtex_train
-      # crop_type: short_side_resize_random
+      name: coco_train
+      crop_type: short_side_resize_random
       type: ${globals.INPUT_TYPE}
       input_size: 224
-      # h_flip_prob: 0.5
+      h_flip_prob: 0.5
   val_pipeline:
     name: ${globals.INPUT_TYPE}
     keys: [image, segmentations]
     is_video_dataset: false
     transforms:
-      name: clevrtex_val
-      # crop_type: central
+      name: coco_val
+      crop_type: central
       type: ${globals.INPUT_TYPE}
       input_size: 224
-      num_classes: 11
+      num_classes: 63

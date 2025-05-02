@@ -106,11 +106,6 @@ model:
     step: ${globals.STEP}
     decay_steps: null # 100000
     used_multiples: ${globals.USED_MULTIPLES}
-  # grouper:
-  #   name: AdvancedBayesianSelfAttentionGMM
-  #   dim: ${globals.SLOT_DIM}
-  #   num_slots: ${globals.NUM_SLOTS}
-  #   batch_size: ${globals.TOTAL_BATCH_SIZE}
 
 
   decoder:

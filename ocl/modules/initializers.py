@@ -45,10 +45,9 @@ class RandomSMMInit(nn.Module):
             initial_std = dim**-0.5
         self.log_std = nn.Parameter(torch.log(torch.ones(1, 1, 2*dim) * initial_std))
 
-    def forward(self, inputs: torch.Tensor):
-        batch_size = inputs.shape[0]
+    def forward(self, batch_size: int):
         noise = torch.randn(batch_size, self.n_slots, self.dim, device=self.mean.device)
-        return self.mean + noise * self.log_std.exp(), inputs
+        return self.mean + noise * self.log_std.exp()
 
 class SMMInit(nn.Module):
     """Sampled random initialization for all slots."""

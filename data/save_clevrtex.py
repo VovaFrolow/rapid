@@ -146,7 +146,7 @@ if __name__ == "__main__":
     parser.add_argument("--original-image-format",
                         action="store_true",
                         help="Whether to keep the original image encoding (e.g. jpeg), or convert to numpy")
-    parser.add_argument("--load-anno", action="store_true", default=True,
+    parser.add_argument("--load-anno", action="store_true", default=False,
                         help="Load annotation data (segmentation masks)")
 
     args = parser.parse_args()
