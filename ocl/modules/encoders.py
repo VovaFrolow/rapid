@@ -558,7 +558,7 @@ class TimmExtractorv2(nn.Module):
                     code = self.dropout(image_feat)
                 else:
                     code = image_feat
-            print("123")
+            
             # code = self.project_head(code.flatten(-2, -1))
             if self.mode == "hc_video":
                 for name in proj_keys:
