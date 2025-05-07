@@ -25,7 +25,7 @@ def build(
     optimizer_builder = optimizers.OptimizerBuilder(**optimizer_config)
     mode = model_config.get("mode", "default")
     initializer = modules.build_initializer(model_config.initializer)
-    if mode == "smm" or mode == "tsmm":
+    if mode == "smm" or mode == "tsmm" or "hc" in mode:
         encoder = modules.build_encoder(model_config.encoder, "HCEncoder")
     else:
         encoder = modules.build_encoder(model_config.encoder, "FrameEncoder")
@@ -269,20 +269,14 @@ class ObjectCentricModel(pl.LightningModule):
 
         Возвращает нормализованный тензор
         """
-        # Проверяем входные данные
         if data is None:
             return None
         if data.ndim != 3:
             data = data[np.newaxis, :, :]
-        # Убеждаемся, что это тензор PyTorch
-        # if not torch.is_tensor(data):
-        #     data = torch.tensor(data)
 
-        # Находим текущие минимум и максимум
         current_min = np.min(data, axis=(1, 2))
         current_max = np.max(data, axis=(1, 2))
 
-        # Проверка, чтобы избежать деления на ноль
         if np.any(current_min == current_max):
             idxs = np.where(current_min == current_max)
             normalized = np.zeros_like(data)
@@ -398,35 +392,21 @@ class ObjectCentricModel(pl.LightningModule):
     def get_best_region(self, improved_mask, original_mask, intersection_threshold=0.1):
         binary_mask = (improved_mask < 0.5).astype(np.uint8) * 255 
         binary_original_mask = (original_mask > 0.6).astype(np.uint8) * 255
-        # Находим контуры в улучшенной маске
         contours_improved, _ = cv2.findContours(binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        # Находим контуры в исходной маске
         contours_original, _ = cv2.findContours(binary_original_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        # Создаем пустую маску для выделения близких регионов
         out_mask = np.zeros_like(improved_mask)
 
         for i, contour_orig in enumerate(contours_original):
-            # Создаем маску для текущего региона исходной маски
             mask_orig = np.zeros_like(binary_original_mask)
             cv2.drawContours(mask_orig, [contour_orig], -1, 1, thickness=cv2.FILLED)
 
             for j, contour_improved in enumerate(contours_improved):
-                # Создаем маску для текущего региона улучшенной маски
                 mask_improved = np.zeros_like(binary_mask)
                 cv2.drawContours(mask_improved, [contour_improved], -1, 1, thickness=cv2.FILLED)
-
-                # Вычисляем пересечение
                 intersection_area = (mask_orig & mask_improved).sum()
-                # print(intersection)
-                # intersection_area = np.sum(intersection > 0)
-
-                # Вычисляем площадь исходного региона
                 original_area = np.sum(mask_orig > 0)
-
-                # Проверяем, если пересечение достаточно велико
                 if original_area > 0 and (intersection_area / original_area) >= intersection_threshold:
-                    # Добавляем текущий контур к маске близких регионов
                     cv2.drawContours(out_mask, [contour_improved], -1, 1, thickness=cv2.FILLED)
 
         return out_mask
