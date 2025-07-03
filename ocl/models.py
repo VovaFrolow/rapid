@@ -480,7 +480,7 @@ class ObjectCentricModel(pl.LightningModule):
         else:
             slots_initial = self.initializer(batch_size=batch_size)
             processor_output = self.processor(slots_initial, features)
-        
+
         # size = int(processor_output["corrector"]["masks"].shape[-1]**0.5)
         # attn_vis = processor_output["corrector"]["masks"].unflatten(-1, (size, size))
         # processor_output["resized_masks"] = self.resize(attn_vis).to("cuda:0").flatten(-2, -1)
@@ -488,9 +488,9 @@ class ObjectCentricModel(pl.LightningModule):
         slots = processor_output["state"]
         decoder_output = self.decoder(slots)
         # np.save('att_masks.npy', processor_output["corrector"]["masks"].cpu().detach().numpy())
-        # print('save att_masks')
+        # print('save att_masks', processor_output["corrector"]["masks"].shape, processor_output["corrector"]["masks"].flatten().shape)
         # np.save('masks.npy', decoder_output['masks'].cpu().detach().numpy())
-        # print('save masks')
+        # print('save masks', decoder_output["masks"].shape, decoder_output['masks'].flatten().shape)
         # if self.mode == "default":
         #     # size = int(decoder_output["masks"].shape[-1]**0.5)
         #     dec_masks = decoder_output["masks"].unflatten(-1, (self.mask_size, self.mask_size))

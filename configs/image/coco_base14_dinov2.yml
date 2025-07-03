@@ -10,14 +10,14 @@ globals:
   FEAT_DIM: "${config_prop: VIT_PARAMS, ${.VIT_MODEL}, FEAT_DIM}"
   NUM_PATCHES: "${config_prop: VIT_PARAMS, ${.VIT_MODEL}, NUM_PATCHES}"
   NUM_GPUS: 1
-  BATCH_SIZE_PER_GPU: 64
+  BATCH_SIZE_PER_GPU: 128
   TOTAL_BATCH_SIZE: "${mul: ${.NUM_GPUS}, ${.BATCH_SIZE_PER_GPU}}"
   BASE_LR: 0.0002
 
 trainer:
   max_steps: 500000
   log_every_n_steps: 200
-  val_check_interval: 2500
+  val_check_interval: 1 # 2500
   gradient_clip_val: 1.0
 
 optimizer:
@@ -112,7 +112,8 @@ dataset:
   train_shards: "coco/coco-train-{000000..000924}.tar"
   val_shards: "coco/coco-validation-{000000..000039}.tar"
   batch_size: ${globals.BATCH_SIZE_PER_GPU}
-  val_size: 5000
+  val_batch_size: 128
+  val_size: 128 # 5000
   num_workers: 4
   num_val_workers: 1
   train_pipeline:

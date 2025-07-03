@@ -1,11 +1,11 @@
 experiment_group: rapid
 experiment_name: coco_base14_dinosmm
-# seed: 42
+seed: 1
 
 globals:
   INPUT_TYPE: image
   MODE: smm
-  NUM_SLOTS: 6 # 7 [6]
+  NUM_SLOTS: 3 # 7 [6]
   SLOT_DIM: 256 # 256
   VIT_MODEL: vit_base_patch14_dinov2
   FEAT_DIM: "${config_prop: VIT_PARAMS, ${.VIT_MODEL}, FEAT_DIM}"
@@ -21,7 +21,7 @@ globals:
 trainer:
   max_steps: 500000
   log_every_n_steps: 200
-  val_check_interval: 2500
+  val_check_interval: 1000
   gradient_clip_val: 1.0
 
 optimizer:
@@ -38,8 +38,8 @@ optimizer:
     # min_scale: 0.0025
     name: cosine_decay_with_exponential_tail
     warmup_steps: 5000
-    decay_steps: 50000
-    min_scale: 0.25
+    decay_steps: 45000
+    min_scale: 0.2
     exp_decay_rate: 0.65
     transition_start_ratio: 0.9
     transition_length_ratio: 0.1
@@ -95,8 +95,8 @@ model:
     num_slots: ${globals.NUM_SLOTS}
     iters: 3
     # batch_size: ${globals.BATCH_SIZE_PER_GPU}
-    attn_smooth: null # ['gaussian', 'conv', 'wnconv']
-    attn_smooth_size: null
+    attn_smooth: 'wnconv' # ['gaussian', 'conv', 'wnconv']
+    attn_smooth_size: 5
     init_temperature: null
     temperature: ${globals.TEMPERATURE}
     final_temperature: null
@@ -114,8 +114,8 @@ model:
     outp_dim: ${globals.FEAT_DIM}
     hidden_dims: [2048, 2048, 2048]
     n_patches: ${globals.NUM_PATCHES}
-    final_conv: null
-    kernel_size: null
+    # final_conv: null
+    # kernel_size: null
   # decoder:
   #   name: SlotMixerDecoder
   #   inp_dim: ${globals.FEAT_DIM}
@@ -184,50 +184,6 @@ val_metrics:
     ignore_overlaps: true
     matching: hungarian
     pred_key: decoder_masks_hard
-    true_key: segmentations
-  fg_miou:
-    name: ImageIoU
-    ignore_overlaps: true
-    ignore_background: true
-    matching: hungarian
-    pred_key: decoder_masks_hard
-    true_key: segmentations
-  slots_ari:
-    name: ImageARI
-    ignore_overlaps: true
-    pred_key: grouping_masks_hard
-    true_key: segmentations
-  slots_fg_ari:
-    name: ImageARI
-    ignore_overlaps: true
-    ignore_background: true
-    pred_key: grouping_masks_hard
-    true_key: segmentations
-  slots_mbo:
-    name: ImageIoU
-    ignore_overlaps: true
-    matching: overlap
-    pred_key: grouping_masks_hard
-    true_key: segmentations
-  slots_fg_mbo:
-    name: ImageIoU
-    ignore_overlaps: true
-    ignore_background: true
-    matching: overlap
-    pred_key: grouping_masks_hard
-    true_key: segmentations
-  slots_miou:
-    name: ImageIoU
-    ignore_overlaps: true
-    matching: hungarian
-    pred_key: grouping_masks_hard
-    true_key: segmentations
-  slots_fg_miou:
-    name: ImageIoU
-    ignore_overlaps: true
-    ignore_background: true
-    matching: hungarian
-    pred_key: grouping_masks_hard
     true_key: segmentations
 
 dataset:

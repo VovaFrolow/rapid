@@ -540,8 +540,8 @@ class TimmExtractorv2(nn.Module):
             else:
                 features = outputs[feature_keys[-1]]
             features = self.normalization(features)
-            feat_h, feat_w = int(features.shape[1]**0.5), int(features.shape[1]**0.5) 
-            image_feat = features.reshape(features.shape[0], feat_h, feat_w, -1).permute(0, 3, 1, 2)
+            b, feat_h, feat_w = features.shape[0], int(features.shape[1]**0.5), int(features.shape[1]**0.5) 
+            image_feat = features.reshape(b, feat_h, feat_w, -1).permute(0, 3, 1, 2)
             if self.proj_type is not None:
                 with torch.no_grad():
                     if self.drop:
@@ -558,8 +558,11 @@ class TimmExtractorv2(nn.Module):
                     code = self.dropout(image_feat)
                 else:
                     code = image_feat
-            
-            # code = self.project_head(code.flatten(-2, -1))
+            # print(code.shape)
+            code = code.permute(0, 2, 3, 1).reshape(b, feat_h*feat_w, -1)
+            # print(code.shape)
+            code = self.project_head(code)
+            # print(code.shape)
             if self.mode == "hc_video":
                 for name in proj_keys:
                     if ("keys" in name) or ("queries" in name) or ("values" in name):
@@ -605,7 +608,7 @@ class TimmExtractorv2(nn.Module):
                         feature_keys[-1]: outputs[feature_keys[-1]],
                         proj_keys[-1]: outputs[proj_keys[-1]]}
             
-            return {f"{feature_keys[-1]}_hc": code.permute(0, 2, 3, 1).reshape(features.shape[0], feat_h*feat_w, -1), # code.permute(0, 2, 1),
+            return {f"{feature_keys[-1]}_hc": code, # code.permute(0, 2, 3, 1).reshape(features.shape[0], feat_h*feat_w, -1), # code.permute(0, 2, 1),
                     feature_keys[-1]: outputs[feature_keys[-1]]}
             
             # outputs = {self.features[0]: features,

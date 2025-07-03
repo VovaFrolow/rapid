@@ -101,13 +101,13 @@ class SMMInit(nn.Module):
         # )
 
     def forward(self, inputs: torch.Tensor):
-        ndim = inputs.ndim
-        if ndim == 4:
+        # ndim = inputs.ndim
+        # if ndim == 4:
             # inputs = inputs[:, -1] # .flatten(0, 1)
             # max_inputs, mean_inputs = inputs.amax(dim=1), inputs.mean(dim=1)
             # inp = torch.cat([max_inputs, mean_inputs], dim=-1)
             # inputs = self.feat_agg(inp)
-            inputs = inputs[:, inputs.shape[1] // 2]
+            # inputs = inputs[:, inputs.shape[1] // 2]
         b, n, d, device = *inputs.shape, inputs.device
         n_s = self.n_slots
 

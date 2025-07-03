@@ -178,14 +178,14 @@ class SlotMixture(nn.Module):
         updates_mu = self.gru_mu(updates_mu.reshape(-1, d), slots_mu.reshape(-1, d))
         updates_mu = updates_mu.reshape(b, -1, d)
         updates_mu = updates_mu + self.mlp_mu(self.norm_mu(updates_mu))
-        if torch.isnan(updates_mu).any():
-            print('updates_mu Nan appeared')
+        # if torch.isnan(updates_mu).any():
+        #     print('updates_mu Nan appeared')
 
         # M step for logsigmas for new mus
         updates_logsigma = 0.5 * torch.log(torch.einsum('bijd,bij->bid', (
             (torch.unsqueeze(v, 1) - torch.unsqueeze(updates_mu, 2)) ** 2 + self.eps, attn)))
-        if torch.isnan(updates_logsigma).any():
-            print('updates_logsigma Nan appeared')
+        # if torch.isnan(updates_logsigma).any():
+        #     print('updates_logsigma Nan appeared')
 
         # new gaussians params
         slots = torch.cat((updates_mu, updates_logsigma), dim=-1)
@@ -239,7 +239,7 @@ class StabilizedSMM(nn.Module):
         gau_max: float = 2.0, 
         attn_smooth_size: int = 5,
         drop_rate: float = 0.2,
-        use_mlp: bool = True
+        # use_mlp: bool = True
     ):
         super().__init__()
         self.num_slots = num_slots
@@ -297,14 +297,14 @@ class StabilizedSMM(nn.Module):
         self.norm_slots = nn.LayerNorm(dim * 2)
         self.norm_mu = nn.LayerNorm(dim)
         self.norm_sigma = nn.LayerNorm(dim)
-        if use_mlp:
-            self.mlp_out = nn.Sequential(
-                nn.Linear(dim * 2, hidden_dim * 2),
-                nn.ReLU(inplace=True),
-                nn.Linear(hidden_dim * 2, dim)
-            )
-        else:
-            self.mlp_out = None
+        # if use_mlp:
+        self.mlp_out = nn.Sequential(
+            nn.Linear(dim * 2, hidden_dim * 2),
+            nn.ReLU(inplace=True),
+            nn.Linear(hidden_dim * 2, dim)
+        )
+        # else:
+        #     self.mlp_out = None
         # self.mlp_out = networks.MLP(2*dim, dim, [2*hidden_dim], initial_layer_norm=False, residual=False)
         if final_temperature is not None:
             self.init_temperature = init_temperature
@@ -417,8 +417,8 @@ class StabilizedSMM(nn.Module):
         # updates_mu = self.mlp_mu(updates_mu)
         updates_mu = self.norm_mu(updates_mu.reshape(b, -1, d))
         updates_mu = self.mlp_mu(updates_mu) + updates_mu
-        if torch.isnan(updates_mu).any():
-            print('updates_mu Nan appeared')
+        # if torch.isnan(updates_mu).any():
+        #     print('updates_mu Nan appeared')
         # M step for nus
         # new_dots = (((torch.unsqueeze(k, 1) - torch.unsqueeze(updates_mu, 2)) / torch.unsqueeze(torch.exp(q_logsigma),
         #                                                                                   2))**2 * (q_nu.unsqueeze(2) / (q_nu.unsqueeze(2) - 2))).sum(dim=-1) * self.scale
@@ -498,8 +498,8 @@ class StabilizedSMM(nn.Module):
         #     new_attn
         #     )
         # )
-        if torch.isnan(updates_logsigma).any():
-            print('updates_logsigma Nan appeared')
+        # if torch.isnan(updates_logsigma).any():
+        #     print('updates_logsigma Nan appeared')
         conv_gammas = None
         if last:
             # new_dots = (((torch.unsqueeze(k, 1) - torch.unsqueeze(updates_mu, 2)) / torch.unsqueeze(torch.exp(updates_logsigma),
@@ -563,10 +563,10 @@ class StabilizedSMM(nn.Module):
         slots, pi_cl, log_dict, attn, conv_attn = self.step(slots.detach(), k, v, b, n, d, pi_cl, last=True)
         log_l = log_dict
         
-        if self.mlp_out is not None:
-            slots = self.mlp_out(slots)
+        # if self.mlp_out is not None:
+        slots = self.mlp_out(slots)
 
-        return {"slots": slots, "masks": attn, "conv_masks": conv_attn} # self.mlp_out(self.dropout(slots))?
+        return {"slots": slots, "masks": attn}#, "conv_masks": conv_attn} # self.mlp_out(self.dropout(slots))?
         
         # if self.input_type == "image":
         #     return {"slots": self.mlp_out(slots), "masks": attn} # self.mlp_out(self.dropout(slots))?

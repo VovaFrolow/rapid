@@ -1,6 +1,6 @@
 experiment_group: rapid
 experiment_name: coco_base14_dinosmm
-# seed: 42
+seed: 1
 
 globals:
   INPUT_TYPE: image
@@ -21,7 +21,7 @@ globals:
 trainer:
   max_steps: 500000
   log_every_n_steps: 200
-  val_check_interval: 5000 # 2500
+  val_check_interval: 1 # 2500
   gradient_clip_val: 1.0
   accumulate_grad_batches: 2
 
@@ -39,8 +39,8 @@ optimizer:
     # min_scale: 0.0025
     name: cosine_decay_with_exponential_tail
     warmup_steps: 5000
-    decay_steps: 50000
-    min_scale: 0.25
+    decay_steps: 45000
+    min_scale: 0.2
     exp_decay_rate: 0.65
     transition_start_ratio: 0.9
     transition_length_ratio: 0.1
@@ -96,8 +96,8 @@ model:
     num_slots: ${globals.NUM_SLOTS}
     iters: 3
     # batch_size: ${globals.BATCH_SIZE_PER_GPU}
-    attn_smooth: null # ['gaussian', 'conv', 'wnconv']
-    attn_smooth_size: null
+    attn_smooth: 'wnconv' # ['gaussian', 'conv', 'wnconv']
+    attn_smooth_size: 5
     init_temperature: null
     temperature: ${globals.TEMPERATURE}
     final_temperature: null
@@ -120,8 +120,8 @@ model:
     outp_dim: ${globals.FEAT_DIM}
     hidden_dims: [2048, 2048, 2048]
     n_patches: ${globals.NUM_PATCHES}
-    final_conv: null
-    kernel_size: null
+    # final_conv: null
+    # kernel_size: null
   # decoder:
   #   name: SlotMixerDecoder
   #   inp_dim: ${globals.FEAT_DIM}
@@ -240,7 +240,7 @@ dataset:
   train_shards: "clevrtex/clevrtex-train-{000000..000312}.tar"
   val_shards: "clevrtex/clevrtex-val-{000000..000078}.tar"
   batch_size: ${globals.BATCH_SIZE_PER_GPU}
-  val_size: 10000
+  val_size: 32 # 10000
   num_workers: 4
   num_val_workers: 1
   train_pipeline:

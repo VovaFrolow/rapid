@@ -54,20 +54,20 @@ class MLPDecoder(nn.Module):
         n_patches: int,
         activation: str = "relu",
         eval_output_size: Optional[Tuple[int]] = None,
-        final_conv: Optional[str] = None,
-        kernel_size: Optional[int] = None,
+        # final_conv: Optional[str] = None,
+        # kernel_size: Optional[int] = None,
     ):
         super().__init__()
         self.outp_dim = outp_dim
         self.n_patches = n_patches
         self.eval_output_size = list(eval_output_size) if eval_output_size else None
-        self.final_conv = WNConv(
-            in_channels=1,
-            out_channels=1,
-            kernel_size=kernel_size,
-            padding=kernel_size // 2,
-            bias=False,
-        ) if final_conv == 'wnconv' else None
+        # self.final_conv = WNConv(
+        #     in_channels=1,
+        #     out_channels=1,
+        #     kernel_size=kernel_size,
+        #     padding=kernel_size // 2,
+        #     bias=False,
+        # ) if final_conv == 'wnconv' else None
 
         self.mlp = networks.MLP(inp_dim, outp_dim + 1, hidden_dims, activation=activation)
         self.pos_emb = nn.Parameter(torch.randn(1, 1, n_patches, inp_dim) * inp_dim**-0.5)
@@ -92,16 +92,16 @@ class MLPDecoder(nn.Module):
         masks = torch.softmax(alpha, dim=1)
         recon = torch.sum(recons * masks, dim=1)
         masks = masks.squeeze(-1)
-        conv_masks = None
-        if isinstance(self.final_conv, WNConv):
-            b, k, d = masks.shape
-            conv_masks = self.final_conv(masks.unsqueeze(2).reshape(b*k, 1, int(d**0.5), int(d**0.5)))
-            conv_masks = conv_masks.squeeze().reshape(b, k, d)
+        # conv_masks = None
+        # if isinstance(self.final_conv, WNConv):
+        #     b, k, d = masks.shape
+        #     conv_masks = self.final_conv(masks.unsqueeze(2).reshape(b*k, 1, int(d**0.5), int(d**0.5)))
+        #     conv_masks = conv_masks.squeeze().reshape(b, k, d)
 
         return {
             "reconstruction": recon, 
             "masks": masks,
-            "conv_masks": conv_masks,
+            # "conv_masks": conv_masks,
         }
 
 
