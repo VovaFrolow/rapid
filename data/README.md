@@ -51,7 +51,7 @@ python save_voc.py --download-dir <root_download_dir>/voc_raw --out-path <root_d
 python save_voc.py --download-dir <root_download_dir>/voc_raw --out-path <root_data_dir>/voc --split trainval --maxcount 128
 ```
 
-### ClevrTex
+### CLEVRTEX
 
 ```
 python save_clevrtex.py --download-dir <root_download_dir>/clevrtex_raw --out-path <root_data_dir>/clevrtex --split train --maxcount 128
