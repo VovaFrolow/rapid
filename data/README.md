@@ -38,6 +38,26 @@ python save_coco.py --split unlabeled --maxcount 256 --original-image-format --o
 
 Note that the script downloads and extracts the raw COCO dataset to `--download-dir`.
 
+### PASCAL VOC
+
+Preliminaries:
+
+```
+poetry install -E gdown
+```
+
+```
+python save_voc.py --download-dir <root_download_dir>/voc_raw --out-path <root_data_dir>/voc --split trainaug --maxcount 128
+python save_voc.py --download-dir <root_download_dir>/voc_raw --out-path <root_data_dir>/voc --split trainval --maxcount 128
+```
+
+### CLEVRTEX
+
+```
+python save_clevrtex.py --download-dir <root_download_dir>/clevrtex_raw --out-path <root_data_dir>/clevrtex --split train --maxcount 128
+python save_clevrtex.py --download-dir <root_download_dir>/clevrtex_raw --out-path <root_data_dir>/clevrtex --split val --maxcount 128
+```
+
 ### YouTube-VIS 2021
 
 Preliminaries:
