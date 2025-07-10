@@ -21,7 +21,7 @@ globals:
 trainer:
   max_steps: 500000
   log_every_n_steps: 200
-  val_check_interval: 1 # 2500
+  val_check_interval: 2500
   gradient_clip_val: 1.0
   accumulate_grad_batches: 2
 
@@ -240,7 +240,7 @@ dataset:
   train_shards: "clevrtex/clevrtex-train-{000000..000312}.tar"
   val_shards: "clevrtex/clevrtex-val-{000000..000078}.tar"
   batch_size: ${globals.BATCH_SIZE_PER_GPU}
-  val_size: 32 # 10000
+  val_size: 10000
   num_workers: 4
   num_val_workers: 1
   train_pipeline:

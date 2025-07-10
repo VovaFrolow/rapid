@@ -55,7 +55,7 @@ python save_voc.py --download-dir <root_download_dir>/voc_raw --out-path <root_d
 
 ```
 python save_clevrtex.py --download-dir <root_download_dir>/clevrtex_raw --out-path <root_data_dir>/clevrtex --split train --maxcount 128
-python save_clevrtex.py --download-dir <root_download_dir>/clevrtex_raw --out-path <root_data_dir>/clevrtex --split val --maxcount 128
+python save_clevrtex.py --download-dir <root_download_dir>/clevrtex_raw --out-path <root_data_dir>/clevrtex --split val --load-anno --maxcount 128
 ```
 
 ### YouTube-VIS 2021
