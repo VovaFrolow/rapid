@@ -23,14 +23,14 @@ By default, datasets are expected to be contained in the folder `./data`.
 Run one of the configurations in `configs/image`, for example:
 
 ```
-poetry run python -m ocl.train configs/image/coco_base14_dino_l_smm.yml
+poetry run python -m ocl.train configs/image/coco_base14_rapid.yml
 ```
 
 The results are stored in a folder created under the log root folder (by defaults `./logs`, changeable by the argument `--log-dir`).
 If you want to continue training from a previous run, you can use the `--continue` argument, like in the following command:
 
 ```
-poetry run python -m ocl.train --continue <path_to_log_dir_or_checkpoint_file> configs/image/coco_base14_dino_l_smm.yml
+poetry run python -m ocl.train --continue <path_to_log_dir_or_checkpoint_file> configs/image/coco_base14_rapid.yml
 ```
 
 ### Inference
