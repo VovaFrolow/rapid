@@ -1,5 +1,5 @@
-checkpoint: checkpoints/coco_dinosaur_base14_dinov2.ckpt
-model_config: configs/dinosaur/coco_base14_dinov2.yml
+checkpoint: checkpoints/coco_rapid_base14_dinov2.ckpt
+model_config: configs/image/coco_base14_rapid.yml
 n_slots: 5
 input:
   path: docs/static/images/test2.jpg

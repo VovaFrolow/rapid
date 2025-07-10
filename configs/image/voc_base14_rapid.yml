@@ -1,6 +1,6 @@
 experiment_group: rapid
 experiment_name: coco_base14_dinosmm
-seed: 1
+# seed: 1
 
 globals:
   INPUT_TYPE: image

@@ -1,5 +1,5 @@
-checkpoint: checkpoints/videosaur-movi-c.ckpt
-model_config: configs/videosaur/movi_c.yml
+checkpoint: checkpoints/rapid_movi-c.ckpt
+model_config: configs/video/movi_c_rapid.yml
 n_slots: 11
 input:
   path: docs/static/videos/video.mp4

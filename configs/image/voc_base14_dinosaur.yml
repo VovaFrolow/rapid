@@ -1,5 +1,5 @@
 experiment_group: dinosaur
-experiment_name: coco_base16_dino
+experiment_name: coco_base14_dino
 # seed: 42
 
 globals:
