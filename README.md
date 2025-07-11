@@ -43,4 +43,4 @@ in the released config, please change `checkpoint: path/to/rapid-movi-c.ckpt` to
 For different video formats you would need to modify corresponding transformations in `build_inference_transform` function.
 
 # Acknowledgement
-The code uses resources from [VideoSAUR](https://github.com/martius-lab/videosaur/tree/main). We thank authors of these wonderful projects for open-sourcing their work.
+The code uses resources from [VideoSAUR](https://github.com/martius-lab/videosaur/tree/main). We thank authors of this wonderful projects for open-sourcing their work.
