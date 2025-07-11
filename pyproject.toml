@@ -1,11 +1,7 @@
 [tool.poetry]
-name = "videosaur"
+name = "rapid"
 version = "0.1.0"
-description = "VideoSAUR: Object-Centric Learning for Real-World Videos by Predicting Temporal Feature Similarities"
-authors = [
-  "Maximilian Seitzer <maximilian.seitzer@tuebingen.mpg.de>",
-  "Andrii Zadaianchuk <andrii.zadaianchuk@tuebingen.mpg.de>"
-]
+description = "RAPID: Robust Adaptive Probabilistic Inference with DINO Features"
 readme = "README.md"
 
 [tool.poetry.dependencies]
