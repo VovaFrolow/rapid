@@ -12,8 +12,6 @@ from torchvision import transforms
 
 from ocl import configuration, losses, modules, optimizers, utils, visualizations
 from ocl.data.transforms import Denormalize, Normalize
-from .modules.sam import sam_model_registry
-from .modules.mask_generator.predictor import SamPredictor
 
 
 def build(
@@ -177,7 +175,6 @@ class ObjectCentricModel(pl.LightningModule):
         input_type: str = "image",
         image_size: int = 224,
         mask_size: int = 16,
-        num_points_for_sam: int = 5,
         target_encoder_input: Optional[str] = None,
         visualize: bool = False,
         visualize_every_n_steps: Optional[int] = None,
@@ -190,13 +187,6 @@ class ObjectCentricModel(pl.LightningModule):
         self.processor = processor
         self.resolution = image_size
         self.mask_size = mask_size
-        self.num_points = num_points_for_sam
-        # if mode == "default":
-        #     sam = sam_model_registry['vit_t'](checkpoint='/code/videosaur/modules/mask_generator/weights/mobile_sam.pt', 
-        #                                     custom_img_size=image_size).cuda()
-        #     self.sam = SamPredictor(sam)
-        #     self.resize = transforms.Resize(size=(image_size, image_size))
-        #     self.scale = transforms.Resize(size=(mask_size, mask_size))
         self.decoder = decoder
         self.target_encoder = target_encoder
         self.mode = mode

@@ -1,5 +1,4 @@
 from ocl.modules import timm
-from ocl.modules.sam import build as build_sam
 from ocl.modules.decoders import build as build_decoder
 from ocl.modules.encoders import build as build_encoder
 from ocl.modules.groupers import build as build_grouper
@@ -16,7 +15,6 @@ __all__ = [
     "build_encoder",
     "build_grouper",
     "build_initializer",
-    # "build_sam",
     "build_network",
     "build_utils",
     "build_module",
@@ -37,7 +35,6 @@ BUILD_FNS_BY_MODULE_GROUP = {
     "groupers": build_grouper,
     "initializers": build_initializer,
     "networks": build_network,
-    # "sam": build_sam,
     "utils": build_utils,
     "video": build_video,
     "torch": build_torch_function,
